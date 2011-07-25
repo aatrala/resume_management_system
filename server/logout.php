@@ -1,0 +1,19 @@
+<?php
+session_start();
+if(isset($_SESSION['username']))
+{
+	unset($_SESSION['username']);
+	header('location:index.php');
+}
+if(isset($_SESSION['cusername']))
+		{
+			unset($_SESSION['cusername']);
+			header('location:index.php');
+		}
+		if(isset($_SESSION['ausername']))
+{
+	unset($_SESSION['ausername']);
+	header('location:admin.php');
+}
+?>
+	

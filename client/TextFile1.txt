@@ -1,0 +1,357 @@
+﻿ private void convertCSVmodified(BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            float nooffiles = 0;
+            filesprocessed = 0;
+            String fileslist = openFileDialog1.FileNames.ToString();
+            convertedFiles = openFileDialog1.FileNames;
+            //int count=fileslist.Count;
+            ArrayList city = new ArrayList();
+            city = al.GetCities();
+            city.RemoveAt(city.Count - 1);
+            Array citylist;
+            citylist = city.ToArray();
+            ArrayList RemoveList = new ArrayList();
+            String Sourcepath = txtSource.Text;
+            DestinationPath = txtDestination.Text;
+            object missing = System.Reflection.Missing.Value;
+            int slashindex = Sourcepath.LastIndexOf("\\");
+            DirectoryPath = Sourcepath.Substring(0, slashindex);
+            bool addsplitters = true;
+
+            if (!File.Exists(Sourcepath))
+            {
+                MessageBox.Show("Invalid path or Filename", "Csv Generator", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            else
+            {
+
+                StreamWriter csvwriter = new StreamWriter(DestinationPath);
+                try
+                {
+                    foreach (String file in openFileDialog1.FileNames)
+                    {
+
+
+                        FileName = file.Substring(file.LastIndexOf("\\") + 1);
+                        nooffiles = openFileDialog1.FileNames.Length;
+
+                        //progressBar_Conversion.Value = 5;
+                        ArrayList mailid = new ArrayList();
+                        ArrayList phoneno = new ArrayList();
+                        string formattedstring;
+                        Regex emailregex = new Regex("(?<user>[^@]+)@(?<host>.+)");
+                        double Num;
+
+                        object file1 = (object)file;
+
+                        string newfile = Path.ChangeExtension(file, ".txt");
+                        StreamWriter w = new StreamWriter(newfile);
+
+
+                        Microsoft.Office.Interop.Word._Document doc = ap.Documents.Open(ref file1, ref missing, ref missing, ref missing, ref missing, ref missing,
+                           ref missing, ref missing, ref missing, ref missing, ref missing,
+                           ref missing, ref missing, ref missing, ref missing, ref missing);
+
+                       /* Microsoft.Office.Interop.Word.Document doc1 = ap.ActiveDocument;
+                        string text = doc1.Content.Text;
+                        w.Write(text.ToString());
+                        w.Close();*/
+                      // 
+
+                       /* using (StreamReader readfile = new StreamReader(new FileStream(newfile, FileMode.Open, FileAccess.Read)))
+                        {
+
+                            while ((!readfile.EndOfStream))
+                            {
+
+
+                                int c = readfile.Peek();
+
+                                while (c != -1 && Char.IsWhiteSpace(Convert.ToChar(c)))
+                                {
+                                    readfile.Read(); c = readfile.Peek();
+
+                                }
+
+
+                                StringBuilder b = new StringBuilder();
+
+                                while (c != -1 && !Char.IsWhiteSpace(Convert.ToChar(c)))
+                                {
+                                    b.Append(Convert.ToChar(c)); readfile.Read(); c = readfile.Peek();
+
+                                }*/
+                        // Loop through all words in the document.
+	                    int count = doc.Words.Count;
+	                    for (int i = 1; i <= count; i++)
+	                    {
+	                        // Write the word.
+                            string b = doc.Words[i].Text;
+
+                                if (b.ToString().IndexOf("(") > 0)
+                                {
+                                    formattedstring = b.ToString().Remove(b.ToString().IndexOf("(") - 1);
+
+                                }
+                                else if (b.ToString().IndexOf(",") > 0)
+                                {
+                                    formattedstring = b.ToString().Remove(b.ToString().IndexOf(",") - 1);
+
+                                }
+                                else if (b.ToString().IndexOf(":") > 0)
+                                {
+                                    formattedstring = b.ToString().Remove(b.ToString().IndexOf(":") - 1);
+
+                                }
+                                else if (b.ToString().IndexOf(".") > 0)
+                                {
+                                    formattedstring = b.ToString().Remove(b.ToString().IndexOf(".") - 1);
+
+                                }
+                                else
+                                {
+                                    formattedstring = b.ToString();
+                                }
+                                if (city.Contains(formattedstring.ToString().ToLower()))
+                                {
+                                    if (!matchcity.Contains(b.ToString().ToLower()))
+                                    {
+                                        matchcity.Add(b.ToString().ToLower());
+                                        RemoveList.Add(b.ToString());
+                                    }
+                                }
+
+                                if (gender.Contains(b.ToString().ToLower()))
+                                {
+                                    sex = b.ToString();
+                                }
+
+                                String k = b.ToString();
+
+                                Match m = emailregex.Match(k);
+
+                                if (m.Success)
+                                {
+
+                                    if (mailidcheck == true)
+                                    {
+
+                                        record = "," + k.ToString();
+
+
+                                    }
+                                    else
+                                    {
+                                        record = k.ToString();
+
+                                    }
+
+
+                                    if (!mailid.Contains(k.ToString()))
+                                    {
+                                        mailid.Add(k.ToString());
+                                        RemoveList.Add(k.ToString());
+                                    }
+
+                                    mailidcheck = true;
+                                }
+                                else
+                                {
+                                    string deleterecord = b.ToString();
+
+                                }
+
+                                if (k.ToString().IndexOf("-") > 0)
+                                {
+                                    k = k.ToString().Replace("-", "");
+                                    k = k.ToString().Replace(".", "");
+                                }
+                                else
+                                {
+                                    k = k.ToString();
+                                }
+                                bool isNum = double.TryParse(k, out Num);
+
+                                if (isNum)
+                                {
+                                    Regex regex = new Regex(@"^[-+]?[0-9]-*\.?[0-9]+$");
+                                    Match p = regex.Match(k);
+
+
+                                    if (k.Length >= 10)
+                                    {
+                                        String recordnext;
+                                        if (phonenumbercheck == true || mailidcheck == true)
+                                        {
+                                            recordnext = "," + k.ToString();
+                                        }
+                                        else
+                                        {
+                                            recordnext = k.ToString();
+                                        }
+
+                                        if (!phoneno.Contains(k.ToString()))
+                                        {
+                                            phoneno.Add(k.ToString());
+                                            RemoveList.Add(k.ToString());
+                                        }
+
+
+                                        phonenumbercheck = true;
+
+
+                                    }
+                                    else if (k.Length < 10 && addsplitters == true && phoneno.Count == 0)
+                                    {
+                                        addsplittednumbers += k.ToString();
+
+                                        if (addsplittednumbers.Length >= 10)
+                                        {
+                                            String recordnext_second;
+                                            if (phonenumbercheck == true || mailidcheck == true)
+                                            {
+                                                recordnext_second = "," + addsplittednumbers.ToString();
+                                            }
+                                            else
+                                            {
+                                                recordnext_second = addsplittednumbers.ToString();
+                                            }
+
+                                            if (!phoneno.Contains(addsplittednumbers.ToString()))
+                                            {
+                                                phoneno.Add(addsplittednumbers.ToString());
+                                                RemoveList.Add(addsplittednumbers.ToString());
+                                            }
+
+                                            addsplittednumbers = "";
+                                            addsplitters = false;
+                                            phonenumbercheck = true;
+
+                                        }
+                                    }
+
+
+                                }
+
+
+                            
+                            //readfile.Close();
+                        }
+
+                        /*if (File.Exists(newfile))
+                        {
+                            File.Delete(newfile);
+                        }*/
+                        csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                        if (mailid.Count > 1)
+                        {
+                            csvwriter.Write("\"", FileMode.Append, FileAccess.Write);
+                        }
+                        for (int i = 0; i < mailid.Count; i++)
+                        {
+                            csvwriter.Write(mailid[i].ToString(), FileMode.Append, FileAccess.Write);
+
+                            if (i + 1 != mailid.Count)
+                            {
+                                csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                            }
+                        }
+                        if (mailid.Count > 1)
+                        {
+                            csvwriter.Write("\",", FileMode.Append, FileAccess.Write);
+                        }
+                        else
+                        {
+                            csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                        }
+                        if (sex != null)
+                            csvwriter.Write(sex.ToString() + ",", FileMode.Append, FileAccess.Write);
+                        else
+                            csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                        if (phoneno.Count > 1)
+                        {
+                            csvwriter.Write("\"", FileMode.Append, FileAccess.Write);
+                        }
+                        for (int i = 0; i < phoneno.Count; i++)
+                        {
+
+                            csvwriter.Write(phoneno[i].ToString(), FileMode.Append, FileAccess.Write);
+                            if (i + 1 != phoneno.Count)
+                            {
+                                csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                            }
+
+                        }
+
+                        if (phoneno.Count > 1)
+                        {
+                            csvwriter.Write("\"", FileMode.Append, FileAccess.Write);
+                        }
+
+
+                        if (matchcity.Count > 1)
+                        {
+                            csvwriter.Write(",\"", FileMode.Append, FileAccess.Write);
+
+                        }
+                        else
+                        {
+                            csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                        }
+
+                        for (int i = 0; i < matchcity.Count; i++)
+                        {
+                            if (matchcity[i].ToString().IndexOf(",") > 0)
+                            {
+                                matchcity[i] = matchcity[i].ToString().Remove(matchcity[i].ToString().IndexOf(","));
+                            }
+
+                            csvwriter.Write(matchcity[i].ToString(), FileMode.Append, FileAccess.Write);
+                            if (i + 1 != matchcity.Count && matchcity[i].ToString() != "")
+                            {
+                                csvwriter.Write(",", FileMode.Append, FileAccess.Write);
+                            }
+
+                        }
+
+                        if (matchcity.Count > 1)
+                        {
+                            csvwriter.Write("\"", FileMode.Append, FileAccess.Write);
+
+                        }
+                        csvwriter.Write(",,,," + FileName, FileMode.Append, FileAccess.Write);
+                        csvwriter.Write("\n", FileMode.Append, FileAccess.Write);
+
+                        mailidcheck = false;
+                        phonenumbercheck = false;
+                        object fileobj = (object)file;
+                      //  al.RemoveDetails(file, RemoveList);
+                      //  al.RemoveDetails_modified(ap, RemoveList);
+
+                        ++filesprocessed;
+                        float percentage = (filesprocessed / nooffiles) * 90;
+                        worker.ReportProgress((int)percentage);
+                        addsplitters = true;
+                       // doc.Close(ref missing, ref missing, ref missing);
+
+
+                    }
+            }
+
+                
+                catch (IOException ex)
+                {
+                    MessageBox.Show("File opened..close it" + ex);
+                    return;
+                }
+                csvwriter.Close();
+
+                // al.CreateZip(DirectoryPath, DirectoryPath + "\\resumes.zip");
+                al.CreateZip_usingFiles(convertedFiles, DirectoryPath + "\\resumes.zip");
+                worker.ReportProgress(100);
+
+
+            }
+            return;
+        }
